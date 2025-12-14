@@ -18,7 +18,10 @@ def chebyshev_nodes(n: int = 10) -> np.ndarray | None:
         (np.ndarray): Wektor węzłów Czebyszewa (n,).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if n <= 0 or not isinstance(n, int):
+        return None
+    cz = np.array([np.cos(k * np.pi / (n-1)) for k in range(n)])
+    return cz
 
 
 def bar_cheb_weights(n: int = 10) -> np.ndarray | None:
@@ -31,7 +34,14 @@ def bar_cheb_weights(n: int = 10) -> np.ndarray | None:
         (np.ndarray): Wektor wag dla węzłów Czebyszewa (n,).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if n <= 0 or not isinstance(n, int):
+        return None
+    w = np.ones(n)
+    w[0] = 0.5
+    w[-1] = 0.5 * (-1) ** (n - 1)
+    for j in range(1, n - 1):
+        w[j] = (-1) ** j
+    return w    
 
 
 def barycentric_inte(
@@ -52,7 +62,26 @@ def barycentric_inte(
         (np.ndarray): Wektor wartości funkcji interpolującej (n,).
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if isinstance(xi, np.ndarray) and isinstance(yi, np.ndarray) and isinstance(wi, np.ndarray) and isinstance(x, np.ndarray):
+        if xi.shape != yi.shape or xi.shape != wi.shape:
+            return None
+        n = xi.shape[0]
+        m = x.shape[0]
+        p = np.zeros(m)
+        for j in range(m):
+            numerator = 0.0
+            denominator = 0.0
+            for i in range(n):
+                if x[j] == xi[i]:
+                    numerator = yi[i]
+                    denominator = 1.0
+                    break
+                temp = wi[i] / (x[j] - xi[i])
+                numerator += temp * yi[i]
+                denominator += temp
+            p[j] = numerator / denominator
+        return p
+    return None
 
 
 def L_inf(
@@ -71,4 +100,15 @@ def L_inf(
         (float): Wartość normy L-nieskończoność.
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if isinstance(xr, (int, float)) and isinstance(x, (int, float)):
+        xr = np.array([xr])
+        x = np.array([x])
+        return np.linalg.norm(xr - x, np.inf)
+    elif isinstance(xr, list) and isinstance(x, list) and len(xr) == len(x):
+        xr = np.array(xr)
+        x = np.array(x)
+        return np.linalg.norm(xr - x, np.inf)
+    elif isinstance(xr, np.ndarray) and isinstance(x, np.ndarray) and xr.shape == x.shape:
+        return np.linalg.norm(xr - x, np.inf)
+    else:
+        return None
